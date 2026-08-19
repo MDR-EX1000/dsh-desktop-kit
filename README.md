@@ -16,6 +16,8 @@ Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/d
 - **Lifecycle contract** — closing the window exits the shell with code 0, and the plugin shuts the harness down; plugin teardown kills the shell. No orphaned processes on either side.
 - **Graceful degradation** — no shell binary found? The harness keeps serving the web UI in the browser, with an actionable log line.
 - **Small** — system WebKit (WKWebView), no bundled Chromium; the shell binary is a few MB.
+- **External links that work** — `target="_blank"` / cross-origin links are delegated to the system browser via the shell's `kit_open_external` command (a bare WKWebView renders them dead otherwise).
+- **Browser-style zoom** — Cmd/Ctrl + `=` / `-` / `0` zooms the page (persisted), something a bare WKWebView does not offer.
 
 Deliberately not in v0.1: tray, OS notifications, file panel, in-app updater, control channel. The architecture (control pipe over stdin/stdout, `dshdctl:` protocol) is documented in the blueprint and can grow later.
 
@@ -84,6 +86,8 @@ Plugin config keys (defaults shown):
 | `title` | `'DeepSeek Harness'` | Window title (argv[2] to the shell). |
 
 Shell argv: `dsh-desktop-kit [url] [title]` — defaults `http://127.0.0.1:3080` and `DeepSeek Harness`.
+`--selftest` runs a scriptable native-fullscreen enter/exit check (exit 0 on pass);
+`DSH_KIT_NO_SINGLE_INSTANCE=1` runs a side-by-side instance (selftest, dev).
 
 ## Known limitations
 

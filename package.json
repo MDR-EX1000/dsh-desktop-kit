@@ -8,6 +8,7 @@
   "types": "lib/index.d.ts",
   "exports": {
     ".": "./lib/index.js",
+    "./client": "./lib/client.js",
     "./package.json": "./package.json",
     "./cordis.patch.yml": "./cordis.patch.yml"
   },
@@ -18,13 +19,19 @@
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-runtime"
+      ],
+      "platform": "web"
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node build-client.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "node --check lib/index.js",
+    "lint": "node --check lib/index.js && node --check lib/client.js",
     "prepack": "pnpm build && pnpm test"
   },
   "dependencies": {},
@@ -39,7 +46,8 @@
     "@types/node": "^22.19.0",
     "schemastery": "^3.18.0",
     "typescript": "~5.7.2",
-    "vitest": "^3.0.0"
+    "vitest": "^3.0.0",
+    "esbuild": "^0.25.0"
   },
   "keywords": [
     "deepseek-harness",

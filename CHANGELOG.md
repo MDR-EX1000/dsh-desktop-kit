@@ -21,3 +21,12 @@ Initial release.
 - Fix: wrap the client bundle in the harness's `__ModuleLoader__.load({ id, factory })`
   envelope — a bare IIFE failed boot with "loaded without registering via __ModuleLoader__.load".
 - Fix: macOS icon padding (84% artwork on transparent canvas; was full-bleed/oversized).
+
+## 0.1.2 — 2026-08-19
+
+- Fix: the client entry now exports a cordis plugin (`name` + `apply`) instead of being
+  side-effect-only. The 0.1.1 envelope let the bundle register, but the factory returned
+  an empty object, so the harness rejected it at apply time ("invalid plugin, expect
+  function or object with an 'apply' method, received object") and the "Failed to load
+  plugins" banner stayed up. Side effects now run inside `apply()`. Regression test
+  included: the built bundle's factory is exercised against a stubbed module loader.

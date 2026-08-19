@@ -1,6 +1,6 @@
 {
   "name": "dsh-desktop-kit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Self-owned desktop shell for DeepSeek Harness (DSH): a small plugin that opens the web surface in a native Tauri window — real macOS fullscreen (decorated window), single instance, window-close-shuts-harness lifecycle. No tray, no bundled Chromium.",
   "license": "MIT",
   "type": "module",

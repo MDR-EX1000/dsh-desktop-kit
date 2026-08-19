@@ -1,5 +1,10 @@
 // dsh-desktop-kit client half — injected into the SPA by the harness.
 //
+// The harness module loader applies client entries as cordis plugins, so this
+// entry MUST export a plugin shape (name + apply). A bare side-effect module
+// is rejected at load time: "invalid plugin, expect function or object with
+// an 'apply' method, received object".
+//
 // Only acts inside the native shell (window.__TAURI__ present); in a plain
 // browser, links and zoom are already native behavior and we do nothing.
 //
@@ -11,9 +16,11 @@
 
 type TauriCore = { invoke: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> }
 
-const tauri = (window as unknown as { __TAURI__?: { core?: TauriCore } }).__TAURI__
+export const name = 'dsh-desktop-kit'
 
-if (tauri?.core?.invoke) {
+export function apply() {
+  const tauri = (window as unknown as { __TAURI__?: { core?: TauriCore } }).__TAURI__
+  if (!tauri?.core?.invoke) return
   const invoke = (cmd: string, args: Record<string, unknown>) => {
     tauri.core!.invoke(cmd, args).catch((error) => console.warn('dsh-desktop-kit:', cmd, error))
   }
@@ -87,5 +94,3 @@ if (tauri?.core?.invoke) {
     true,
   )
 }
-
-export {}

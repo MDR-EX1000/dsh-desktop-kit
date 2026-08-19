@@ -12,6 +12,12 @@ describe('client bundle', () => {
     expect(bundle.length).toBeGreaterThan(500)
   })
 
+  it('registers itself with the harness module loader', () => {
+    expect(bundle).toContain('window.__ModuleLoader__.load({')
+    expect(bundle).toContain('id: "dsh-desktop-kit"')
+    expect(bundle).toContain('factory: (require) =>')
+  })
+
   it('is guarded to only act inside the native shell (__TAURI__)', () => {
     expect(bundle).toContain('__TAURI__')
   })

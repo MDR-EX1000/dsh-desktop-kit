@@ -15,3 +15,9 @@ Initial release.
   box (the headline feature vs frameless shells), single-instance with focus-on-relaunch,
   exit-0-on-window-close lifecycle contract.
 - 17 vitest cases for resolution/spawn/exit/dispose logic; CI: plugin (ubuntu) + shell (macOS).
+
+## 0.1.1 — 2026-08-19
+
+- Fix: wrap the client bundle in the harness's `__ModuleLoader__.load({ id, factory })`
+  envelope — a bare IIFE failed boot with "loaded without registering via __ModuleLoader__.load".
+- Fix: macOS icon padding (84% artwork on transparent canvas; was full-bleed/oversized).

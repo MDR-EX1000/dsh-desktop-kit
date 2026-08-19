@@ -1,0 +1,56 @@
+{
+  "name": "dsh-desktop-kit",
+  "version": "0.1.0",
+  "description": "Self-owned desktop shell for DeepSeek Harness (DSH): a small plugin that opens the web surface in a native Tauri window — real macOS fullscreen (decorated window), single instance, window-close-shuts-harness lifecycle. No tray, no bundled Chromium.",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "node --check lib/index.js",
+    "prepack": "pnpm build && pnpm test"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "@deepseek-ai/cordis-plugin-loader": "^1.0.2",
+    "@deepseek-ai/dsh-app-boot": "^0.1.0-rc.6",
+    "schemastery": "^3.18.0"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-host-webserver": "0.1.0-rc.6",
+    "@types/node": "^22.19.0",
+    "schemastery": "^3.18.0",
+    "typescript": "~5.7.2",
+    "vitest": "^3.0.0"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "desktop",
+    "tauri",
+    "macos",
+    "fullscreen"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

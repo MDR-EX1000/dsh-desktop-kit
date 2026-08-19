@@ -1,0 +1,9 @@
+onlyBuiltDependencies:
+  - esbuild
+allowBuilds:
+  esbuild: true
+# 本机 pnpm 11 的供应链策略默认拦截发布不足 ~1 天的包；@deepseek-ai rc 系列
+# 发布频繁，会误伤本项目 devDeps（类型检查/测试用，运行时由 DSH harness 提供）。
+minimumReleaseAge: 0
+# pnpm 11 在脚本前重跑 install 并因历史 ignored-builds 状态误报 exit 1。
+verifyDepsBeforeRun: false

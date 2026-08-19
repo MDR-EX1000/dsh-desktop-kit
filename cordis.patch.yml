@@ -1,0 +1,16 @@
+# dsh-desktop-kit bundle patch: native window over the harness web surface.
+#
+# Applied after dsh-base + dsh-web-app, so the webserver service is already
+# mounted; this bundle only adds the row that opens the native Tauri window on
+# the served loopback URL. The shell exits 0 when its window closes, which the
+# plugin treats as a request to shut the harness down (ctx.appExit).
+
+- insert:
+    - id: desktop-kit
+      name: 'dsh-desktop-kit'
+      inject: [webServer]
+      config:
+        # Explicit shell binary path; unset resolves in order:
+        # $DSH_HOME/bin/dsh-desktop-kit → PATH → ~/.local/bin/dsh-desktop-kit
+        bin: !!js process.env.DSH_DESKTOP_KIT_BIN
+        title: DeepSeek Harness

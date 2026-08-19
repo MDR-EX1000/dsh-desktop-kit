@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  plugin-tarball:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Pack plugin tarball (prepack runs build + tests)
+        run: npm pack
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin-tarball
+          path: '*.tgz'
+
+  shell-binary:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: shell
+
+      - run: cargo build --release --manifest-path shell/Cargo.toml
+
+      - name: Package shell binary (macOS aarch64)
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          mkdir -p out
+          tar -czf "out/dsh-desktop-kit-${tag}-macos-aarch64.tar.gz" \
+            -C shell/target/release dsh-desktop-kit
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shell-binary
+          path: out/*.tar.gz
+
+  release:
+    needs: [plugin-tarball, shell-binary]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*.tgz, artifacts/**/*.tar.gz
+          generateReleaseNotes: true

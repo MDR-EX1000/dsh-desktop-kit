@@ -60,5 +60,12 @@
   ],
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MDR-EX1000/dsh-desktop-kit.git"
+  },
+  "homepage": "https://github.com/MDR-EX1000/dsh-desktop-kit#readme",
+  "bugs": "https://github.com/MDR-EX1000/dsh-desktop-kit/issues",
+  "author": "foolma(Codex) <codex.foolma@stepfun.com>"
 }

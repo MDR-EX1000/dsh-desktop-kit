@@ -183,10 +183,22 @@
           "markdownDescription": "Enables the kit_open_external command without any pre-configured scope."
         },
         {
+          "description": "Enables the kit_set_zoom command without any pre-configured scope.",
+          "type": "string",
+          "const": "allow-kit-set-zoom",
+          "markdownDescription": "Enables the kit_set_zoom command without any pre-configured scope."
+        },
+        {
           "description": "Denies the kit_open_external command without any pre-configured scope.",
           "type": "string",
           "const": "deny-kit-open-external",
           "markdownDescription": "Denies the kit_open_external command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the kit_set_zoom command without any pre-configured scope.",
+          "type": "string",
+          "const": "deny-kit-set-zoom",
+          "markdownDescription": "Denies the kit_set_zoom command without any pre-configured scope."
         },
         {
           "description": "Default core plugins set.\n#### This default permission set includes:\n\n- `core:path:default`\n- `core:event:default`\n- `core:window:default`\n- `core:webview:default`\n- `core:app:default`\n- `core:image:default`\n- `core:resources:default`\n- `core:menu:default`\n- `core:tray:default`",

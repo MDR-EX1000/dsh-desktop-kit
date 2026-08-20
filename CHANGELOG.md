@@ -31,7 +31,7 @@ Initial release.
   plugins" banner stayed up. Side effects now run inside `apply()`. Regression test
   included: the built bundle's factory is exercised against a stubbed module loader.
 
-## 0.1.3 — 2026-08-20
+## 0.1.4 — 2026-08-20
 
 - New: `app/` ships the clickable wrapper in-repo — `install.sh` builds
   `~/Applications/DSH.app` (launcher + Info.plist + icon.icns from the shell artwork).

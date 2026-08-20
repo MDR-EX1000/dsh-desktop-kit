@@ -38,13 +38,6 @@ Initial release.
 - Fix: the launcher attaches to an already-running harness on 127.0.0.1:3080 instead of
   exec'ing a second `dsh web`, which died on `EADDRINUSE` — clicking the icon while a
   terminal-started instance is up now opens a window instead of crashing.
-- Fix: page zoom now uses the shell's native WKWebView `pageZoom` (new `kit_set_zoom`
-  command) instead of a CSS `zoom` on `<body>` — the CSS approach split the page into two
-  coordinate systems (layout vs rendered px), which broke page-side drag/resize widgets
-  (e.g. the dsh-better-sidebar panel handles stopped tracking the cursor).
-
-## 0.1.4 — 2026-08-20
-
 - Fix: page zoom now uses the shell's native `WKWebView` page zoom
   (`kit_set_zoom` → wry `WebView::zoom` → `setPageZoom`, macOS 11+) instead of a CSS
   `zoom` on `<body>`. In WebKit, a CSS `zoom` on `<body>` splits the page into two

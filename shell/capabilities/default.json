@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "dsh-desktop-kit main window: the served loopback origin plus the kit_open_external command the injected client script calls.",
+  "description": "dsh-desktop-kit main window: the served loopback origin plus the kit_open_external and kit_set_zoom commands the injected client script calls.",
   "windows": [
     "main"
   ],
@@ -12,6 +12,7 @@
   },
   "permissions": [
     "core:default",
-    "allow-kit-open-external"
+    "allow-kit-open-external",
+    "allow-kit-set-zoom"
   ]
 }

@@ -27,8 +27,15 @@ describe('client bundle', () => {
     expect(bundle).toContain('_blank')
   })
 
-  it('ships the zoom handler', () => {
+  it('ships the zoom handler (native page zoom, not CSS body zoom)', () => {
     expect(bundle).toContain('dsh-desktop-kit.zoom')
+    // Zoom is delegated to the shell's native WKWebView pageZoom.
+    expect(bundle).toContain('kit_set_zoom')
+    expect(bundle).toContain('scaleFactor')
+    // Regression: a CSS `zoom` on <body> splits WebKit into two coordinate
+    // systems (GBCR local px vs clientX/innerWidth rendered px) and breaks
+    // page-side drag/resize widgets — it must not appear in the bundle.
+    expect(bundle).not.toContain('style.zoom')
   })
 
   it('hands the loader a valid cordis plugin (name + apply)', () => {

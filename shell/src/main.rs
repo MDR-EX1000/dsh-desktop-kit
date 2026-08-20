@@ -47,6 +47,22 @@ fn kit_open_external(url: String) -> Result<(), String> {
     Err("unsupported platform".into())
 }
 
+/// Native page zoom (WKWebView `pageZoom`, macOS 11+). Invoked from the
+/// injected client script: a bare WKWebView has no browser-style zoom, and a
+/// CSS `zoom` on <body> must NOT be used — in WebKit it splits the page into
+/// two coordinate systems (layout/getBoundingClientRect in "local px" while
+/// clientX/innerWidth/elementFromPoint stay in rendered px), which breaks
+/// every page-side drag/resize widget (the dsh-better-sidebar panel handles
+/// no longer track the cursor and their clamps overflow the virtual
+/// viewport). Native page zoom scales the whole render above CSS layout, so
+/// all coordinate APIs stay consistent — exactly what Safari Cmd/Ctrl+= does.
+#[tauri::command]
+fn kit_set_zoom(webview: tauri::Webview, scale_factor: f64) -> Result<(), String> {
+    // Mirror the client's 0.3–3 range; WKWebView rejects non-positive values.
+    let clamped = scale_factor.clamp(0.3, 3.0);
+    webview.set_zoom(clamped).map_err(|e| e.to_string())
+}
+
 fn main() {
     let selftest = std::env::args().any(|arg| arg == "--selftest");
     let url = std::env::args().nth(1).unwrap_or_else(|| DEFAULT_URL.to_string());
@@ -68,7 +84,7 @@ fn main() {
     }
 
     builder
-        .invoke_handler(tauri::generate_handler![kit_open_external])
+        .invoke_handler(tauri::generate_handler![kit_open_external, kit_set_zoom])
         .setup(|_app| Ok(()))
         .build(tauri::generate_context!())
         .expect("error while building dsh-desktop-kit")

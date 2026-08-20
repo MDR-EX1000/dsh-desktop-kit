@@ -1,6 +1,6 @@
 {
   "name": "dsh-desktop-kit",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Self-owned desktop shell for DeepSeek Harness (DSH): a small plugin that opens the web surface in a native Tauri window — real macOS fullscreen (decorated window), single instance, window-close-shuts-harness lifecycle. No tray, no bundled Chromium.",
   "license": "MIT",
   "type": "module",
@@ -34,7 +34,6 @@
     "lint": "node --check lib/index.js && node --check lib/client.js",
     "prepack": "pnpm build && pnpm test"
   },
-  "dependencies": {},
   "peerDependencies": {
     "@deepseek-ai/cordis-plugin-loader": "^1.0.2",
     "@deepseek-ai/dsh-app-boot": "^0.1.0-rc.6",
@@ -44,10 +43,10 @@
     "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/dsh-host-webserver": "0.1.0-rc.6",
     "@types/node": "^22.19.0",
+    "esbuild": "^0.25.0",
     "schemastery": "^3.18.0",
     "typescript": "~5.7.2",
-    "vitest": "^3.0.0",
-    "esbuild": "^0.25.0"
+    "vitest": "^3.0.0"
   },
   "keywords": [
     "deepseek-harness",

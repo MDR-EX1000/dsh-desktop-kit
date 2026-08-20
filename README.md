@@ -53,6 +53,18 @@ cp dsh-desktop-kit ~/.dsh/bin/        # from the release download
 
 To uninstall: `dsh plugin --profile web remove dsh-desktop-kit` and delete `~/.dsh/bin/dsh-desktop-kit`.
 
+### Clickable app icon (macOS)
+
+```bash
+app/install.sh   # builds ~/Applications/DSH.app (idempotent, macOS built-ins only)
+```
+
+The bundle is a thin launcher, not a second harness: if `127.0.0.1:3080` already answers
+(e.g. a terminal-started `dsh web`), the icon just opens a window on that instance;
+otherwise it boots `dsh web` itself. Starting a second `dsh web` would die on
+`EADDRINUSE` — earlier hand-rolled wrappers did exactly that when an instance was
+already up, which is why the launcher lives in this repo now.
+
 ## Development
 
 ```bash

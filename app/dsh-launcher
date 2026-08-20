@@ -1,0 +1,10 @@
+#!/bin/bash
+# DSH.app entry point. One harness per machine binds 127.0.0.1:3080, so a
+# second `dsh web` dies on EADDRINUSE — attach a window to the running
+# instance instead; boot our own only when nothing is serving.
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+URL="http://127.0.0.1:3080"
+if curl -fsS -m 2 -o /dev/null "$URL"; then
+  exec "$HOME/.dsh/bin/dsh-desktop-kit" "$URL" DeepSeek Harness
+fi
+exec "$HOME/.local/bin/dsh" web

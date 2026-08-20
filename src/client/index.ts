@@ -11,8 +11,14 @@
 // Two browser-parity fixes for WKWebView:
 // 1. target="_blank" / cross-origin links are dead in a bare webview — they
 //    are delegated to the shell's kit_open_external command (system browser).
-// 2. WKWebView has no browser-style zoom — Cmd/Ctrl + =/-/0 applies a CSS
-//    zoom on <body>, persisted in localStorage.
+// 2. WKWebView has no browser-style zoom — Cmd/Ctrl + =/-/0 asks the shell
+//    for native page zoom (kit_set_zoom → WKWebView pageZoom, macOS 11+),
+//    persisted in localStorage. A CSS `zoom` on <body> is deliberately NOT
+//    used: in WebKit it splits the page into two coordinate systems (CSS
+//    layout / getBoundingClientRect in local px, while clientX / innerWidth
+//    / elementFromPoint stay in rendered px), which breaks page-side
+//    drag/resize widgets — e.g. the dsh-better-sidebar panel handles stop
+//    tracking the cursor and their clamps overflow the virtual viewport.
 
 type TauriCore = { invoke: (cmd: string, args?: Record<string, unknown>) => Promise<unknown> }
 
@@ -71,11 +77,13 @@ export function apply() {
     return rawOpen(url as string, target, features)
   }) as typeof window.open
 
-  // Browser-style zoom (WKWebView has none built in).
+  // Browser-style zoom (WKWebView has none built in). Native page zoom — the
+  // shell's kit_set_zoom maps to WKWebView pageZoom, which scales the render
+  // above CSS layout and keeps every coordinate API consistent.
   const ZOOM_KEY = 'dsh-desktop-kit.zoom'
   let zoom = Number(localStorage.getItem(ZOOM_KEY) ?? '1') || 1
   const applyZoom = () => {
-    if (document.body) document.body.style.zoom = String(zoom)
+    invoke('kit_set_zoom', { scaleFactor: zoom })
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyZoom)
   else applyZoom()

@@ -48,10 +48,13 @@ dsh plugin --profile web add /path/to/dsh-desktop-kit
 #    then opens the native window with it
 ```
 
-The macOS arm64 release package includes the native shell and `app/` assets. On the first
-`dsh web` start it installs the binary to `~/.dsh/bin/dsh-desktop-kit` and creates
-`~/Applications/DSH.app`. A source checkout still requires `cargo build --release` and
-`app/install.sh` as described below.
+The macOS arm64 release package includes the native shell and `app/` assets. The GitHub source
+repository also tracks the compiled plugin `lib/`, the arm64 `bin/dsh-desktop-kit`, and the app
+assets, so a dsh-market GitHub-source install does not need a local TypeScript or Rust build on
+Apple Silicon. On the first `dsh web` start it installs the binary to `~/.dsh/bin/dsh-desktop-kit`
+and creates `~/Applications/DSH.app`. A source checkout still requires `cargo build --release`
+only when rebuilding the native shell; `app/install.sh` remains available for rebuilding the app
+bundle.
 
 To uninstall: `dsh plugin --profile web remove dsh-desktop-kit`, delete
 `~/.dsh/bin/dsh-desktop-kit`, and remove `~/Applications/DSH.app` if it was installed.

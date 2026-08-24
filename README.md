@@ -2,7 +2,7 @@
 
 Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH): a small plugin plus a native Tauri window over the harness web surface.
 
-`dsh web` starts → the plugin spawns the shell on the served loopback URL → you get DSH in a real desktop window, with the browser tab still available as a second client. No fork, no repackaged runtime, no second profile — everything stays a plugin over your existing harness.
+`dsh web` starts → the plugin spawns the shell on the served loopback URL → you get DSH in a real desktop window. You can still use the browser as a second client by opening the loopback URL yourself; the desktop app does not open that extra browser window during a cold launch. No fork, no repackaged runtime, no second profile — everything stays a plugin over your existing harness.
 
 ## Why not the third-party shell?
 
@@ -61,8 +61,9 @@ app/install.sh   # builds ~/Applications/DSH.app (idempotent, macOS built-ins on
 
 The bundle is a thin launcher, not a second harness: if `127.0.0.1:3080` already answers
 (e.g. a terminal-started `dsh web`), the icon just opens a window on that instance;
-otherwise it boots `dsh web` itself. Starting a second `dsh web` would die on
-`EADDRINUSE` — earlier hand-rolled wrappers did exactly that when an instance was
+otherwise it boots `dsh web --no-open` itself. The server still starts normally, but the
+desktop entry does not open a duplicate browser client. Starting a second `dsh web` would
+die on `EADDRINUSE` — earlier hand-rolled wrappers did exactly that when an instance was
 already up, which is why the launcher lives in this repo now.
 
 ## Development

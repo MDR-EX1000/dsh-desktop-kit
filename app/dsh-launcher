@@ -7,4 +7,6 @@ URL="http://127.0.0.1:3080"
 if curl -fsS -m 2 -o /dev/null "$URL"; then
   exec "$HOME/.dsh/bin/dsh-desktop-kit" "$URL" DeepSeek Harness
 fi
-exec "$HOME/.local/bin/dsh" web
+# The desktop app owns the native window. Keep dsh web serving the loopback
+# surface, but do not open a second browser client during a cold launch.
+exec "$HOME/.local/bin/dsh" web --no-open

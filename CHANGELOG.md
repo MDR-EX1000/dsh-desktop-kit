@@ -3,7 +3,7 @@
 All notable changes to **dsh-desktop-kit**. Format follows [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
-## Unreleased
+## 0.1.5 — 2026-08-24
 
 - Fix: the macOS desktop launcher now starts `dsh web --no-open` on a cold launch,
   so opening the desktop icon does not also open a duplicate browser window.

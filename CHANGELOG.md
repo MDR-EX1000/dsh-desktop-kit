@@ -3,6 +3,12 @@
 All notable changes to **dsh-desktop-kit**. Format follows [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
+## 0.2.0 — 2026-08-24
+
+- New: macOS arm64 release packages include the native shell and clickable app assets;
+  the plugin installs them on the first `dsh web` start, so dsh-market installation no
+  longer requires a separate Rust build or manual `DSH.app` setup.
+
 ## 0.1.5 — 2026-08-24
 
 - Fix: the macOS desktop launcher now starts `dsh web --no-open` on a cold launch,

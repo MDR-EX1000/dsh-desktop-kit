@@ -7,10 +7,11 @@
 // code 0 when its window closes, which this plugin treats as a request to
 // shut the harness down (ctx.appExit). Any other exit keeps the web surface
 // running in the browser.
-import { spawn } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { execFileSync, spawn } from 'node:child_process'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { delimiter, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import z from 'schemastery'
@@ -74,11 +75,96 @@ export interface ApplyOverrides {
   dshHome?: string
   pathDirs?: string[]
   localBin?: string
+  /** Test-only escape hatch for exercising legacy resolution without package assets. */
+  installBundled?: boolean
   console?: Pick<Console, 'log' | 'error'>
 }
 
 const SHELL_NAME = 'dsh-desktop-kit'
 const LOOPBACK_HOST = '127.0.0.1'
+const PACKAGE_ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..')
+
+interface PackageManifest {
+  version?: string
+}
+
+function bundledAsset(name: string): string {
+  return join(PACKAGE_ROOT, name)
+}
+
+function bundledVersion(): string {
+  try {
+    const manifest = JSON.parse(readFileSync(bundledAsset('package.json'), 'utf8')) as PackageManifest
+    return typeof manifest.version === 'string' && manifest.version !== '' ? manifest.version : 'bundled'
+  } catch {
+    return 'bundled'
+  }
+}
+
+/**
+ * Install the packaged macOS shell and clickable app once per package version.
+ * The release tarball contains these assets; source checkouts do not, so local
+ * development keeps using the existing ~/.dsh/bin/PATH resolution path.
+ */
+function ensureBundledDesktopInstall(dshHome: string, log: Pick<Console, 'log' | 'error'>): string | undefined {
+  if (process.platform !== 'darwin' || process.arch !== 'arm64') return undefined
+
+  const sourceBin = bundledAsset(`bin/${SHELL_NAME}`)
+  if (!existsSync(sourceBin)) return undefined
+
+  const version = bundledVersion()
+  const targetDir = join(dshHome, 'bin')
+  const targetBin = join(targetDir, SHELL_NAME)
+  const versionFile = join(targetDir, `.${SHELL_NAME}.version`)
+  try {
+    mkdirSync(targetDir, { recursive: true })
+
+    let installedVersion = ''
+    try {
+      installedVersion = readFileSync(versionFile, 'utf8').trim()
+    } catch {
+      // Missing marker means an older/manual install; refresh it from the package.
+    }
+
+    if (!existsSync(targetBin) || installedVersion !== version) {
+      copyFileSync(sourceBin, targetBin)
+      chmodSync(targetBin, 0o755)
+      writeFileSync(versionFile, `${version}\n`)
+      log.log(`dsh desktop-kit: installed native shell ${version} to ${targetBin}`)
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    log.error(`dsh desktop-kit: could not install native shell: ${message}`)
+    // An older shell is still better than stopping the web surface entirely.
+    if (!existsSync(targetBin)) return undefined
+  }
+
+  const appDir = join(homedir(), 'Applications', 'DSH.app')
+  const appVersionFile = join(appDir, 'Contents', 'Resources', `${SHELL_NAME}.version`)
+  let installedAppVersion = ''
+  try {
+    installedAppVersion = readFileSync(appVersionFile, 'utf8').trim()
+  } catch {
+    // Missing marker means the app needs to be created or refreshed.
+  }
+
+  if (installedAppVersion !== version) {
+    const installer = bundledAsset('app/install.sh')
+    if (existsSync(installer)) {
+      try {
+        execFileSync('/bin/bash', [installer], { stdio: 'ignore' })
+        mkdirSync(join(appDir, 'Contents', 'Resources'), { recursive: true })
+        writeFileSync(appVersionFile, `${version}\n`)
+        log.log(`dsh desktop-kit: installed DSH.app ${version} to ${appDir}`)
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        log.error(`dsh desktop-kit: could not install DSH.app: ${message}`)
+      }
+    }
+  }
+
+  return targetBin
+}
 
 function resolveDshHome(): string {
   return process.env.DSH_HOME && process.env.DSH_HOME.trim() !== ''
@@ -146,6 +232,14 @@ export function apply(ctx: Context, config: Config, overrides: ApplyOverrides = 
     const url = `http://${LOOPBACK_HOST}:${server.port}`
     let bin: string | undefined
     try {
+      const dshHome = overrides.dshHome ?? resolveDshHome()
+      if (
+        overrides.installBundled !== false &&
+        config.bin.trim() === '' &&
+        (process.env.DSH_DESKTOP_KIT_BIN ?? '').trim() === ''
+      ) {
+        ensureBundledDesktopInstall(dshHome, log)
+      }
       bin = resolveShellBinary(config.bin, process.env, overrides.dshHome, overrides.pathDirs, overrides.localBin)
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)

@@ -12,4 +12,10 @@ describe('desktop launcher', () => {
   it('does not open a duplicate browser during a cold launch', () => {
     expect(launcher).toContain('exec "$HOME/.local/bin/dsh" web --no-open')
   })
+
+  it('prefers a bundled shell and falls back to the user install', () => {
+    expect(launcher).toContain('BUNDLE_BIN="$CONTENTS/Resources/dsh-desktop-kit"')
+    expect(launcher).toContain('USER_BIN="$HOME/.dsh/bin/dsh-desktop-kit"')
+    expect(launcher).toContain('exec open "$URL"')
+  })
 })

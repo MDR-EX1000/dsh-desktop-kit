@@ -168,6 +168,7 @@ describe('apply', () => {
       dshHome: tmpDir(),
       pathDirs: [],
       localBin: '/no/local',
+      installBundled: false,
       console: { log: () => {}, error: (m) => errors.push(String(m)) },
     })
     await flush()

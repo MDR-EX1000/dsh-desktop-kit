@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   plugin-tarball:
+    needs: shell-binary
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,8 +25,28 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Download the matching macOS shell
+        uses: actions/download-artifact@v4
+        with:
+          name: shell-assets
+          path: shell-assets
+
+      - name: Stage native shell into the plugin package
+        run: |
+          mkdir -p bin
+          shell_bin="$(find shell-assets -type f -name dsh-desktop-kit -print -quit)"
+          test -n "$shell_bin"
+          cp "$shell_bin" bin/dsh-desktop-kit
+          chmod 755 bin/dsh-desktop-kit
+
       - name: Pack plugin tarball (prepack runs build + tests)
         run: npm pack
+
+      - name: Add legacy tarball alias for dsh-market compatibility
+        run: |
+          plugin_tgz="$(find . -maxdepth 1 -type f -name 'dsh-desktop-kit-*.tgz' -print -quit)"
+          test -n "$plugin_tgz"
+          cp "$plugin_tgz" dsh-desktop-kit-0.1.0.tgz
 
       - uses: actions/upload-artifact@v4
         with:
@@ -49,13 +70,15 @@ jobs:
         run: |
           tag="${GITHUB_REF_NAME}"
           mkdir -p out
+          install -m 755 shell/target/release/dsh-desktop-kit out/dsh-desktop-kit
           tar -czf "out/dsh-desktop-kit-${tag}-macos-aarch64.tar.gz" \
             -C shell/target/release dsh-desktop-kit
 
       - uses: actions/upload-artifact@v4
         with:
-          name: shell-binary
-          path: out/*.tar.gz
+          name: shell-assets
+          path: out/*
+          include-hidden-files: true
 
   release:
     needs: [plugin-tarball, shell-binary]

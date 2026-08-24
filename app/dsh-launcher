@@ -4,8 +4,19 @@
 # instance instead; boot our own only when nothing is serving.
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 URL="http://127.0.0.1:3080"
+CONTENTS="$(cd "$(dirname "$0")/.." && pwd)"
+BUNDLE_BIN="$CONTENTS/Resources/dsh-desktop-kit"
+USER_BIN="$HOME/.dsh/bin/dsh-desktop-kit"
 if curl -fsS -m 2 -o /dev/null "$URL"; then
-  exec "$HOME/.dsh/bin/dsh-desktop-kit" "$URL" DeepSeek Harness
+  if [ -x "$BUNDLE_BIN" ]; then
+    exec "$BUNDLE_BIN" "$URL" DeepSeek Harness
+  fi
+  if [ -x "$USER_BIN" ]; then
+    exec "$USER_BIN" "$URL" DeepSeek Harness
+  fi
+  # No shell is available; show the existing web instance rather than failing
+  # silently when a user launches an incomplete app bundle.
+  exec open "$URL"
 fi
 # The desktop app owns the native window. Keep dsh web serving the loopback
 # surface, but do not open a second browser client during a cold launch.

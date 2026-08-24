@@ -1,6 +1,6 @@
 # dsh-desktop-kit
 
-Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH): a small plugin plus a native Tauri window over the harness web surface.
+Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH): a small plugin plus a native Tauri window over the harness web surface. The macOS arm64 release package includes the native shell and clickable `DSH.app` launcher.
 
 `dsh web` starts → the plugin spawns the shell on the served loopback URL → you get DSH in a real desktop window. You can still use the browser as a second client by opening the loopback URL yourself; the desktop app does not open that extra browser window during a cold launch. No fork, no repackaged runtime, no second profile — everything stays a plugin over your existing harness.
 
@@ -14,7 +14,8 @@ Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/d
 - **Real macOS fullscreen** — decorated window, native fullscreen Space, no custom title bar needed.
 - **Single instance** — a second launch focuses the existing window instead of opening another.
 - **Lifecycle contract** — closing the window exits the shell with code 0, and the plugin shuts the harness down; plugin teardown kills the shell. No orphaned processes on either side.
-- **Graceful degradation** — no shell binary found? The harness keeps serving the web UI in the browser, with an actionable log line.
+- **Self-installing macOS release** — the packaged arm64 shell is copied to `~/.dsh/bin` and the clickable `DSH.app` is installed on the first `dsh web` start; no Rust build is required.
+- **Graceful degradation** — on an unsupported platform or source checkout without bundled assets, the harness keeps serving the web UI in the browser, with an actionable log line.
 - **Small** — system WebKit (WKWebView), no bundled Chromium; the shell binary is a few MB.
 - **External links that work** — `target="_blank"` / cross-origin links are delegated to the system browser via the shell's `kit_open_external` command (a bare WKWebView renders them dead otherwise).
 - **Browser-style zoom** — Cmd/Ctrl + `=` / `-` / `0` zooms the page (persisted), something a bare WKWebView does not offer.
@@ -39,19 +40,21 @@ Requires the `dsh` CLI and macOS (other platforms are untested but should work).
 
 ```bash
 # 1. the plugin
-dsh plugin --profile web add dsh-desktop-kit          # npm (once published)
+dsh plugin --profile web add dsh-desktop-kit          # dsh-market
 # or from a checkout / GitHub release tarball:
 dsh plugin --profile web add /path/to/dsh-desktop-kit
 
-# 2. the shell binary (prebuilt on the Releases page, or build it yourself)
-mkdir -p ~/.dsh/bin
-cp dsh-desktop-kit ~/.dsh/bin/        # from the release download
-# or: cd shell && cargo build --release && cp target/release/dsh-desktop-kit ~/.dsh/bin/
-
-# 3. restart dsh web — the native window opens with it
+# 2. restart dsh web — the release package installs the shell and DSH.app,
+#    then opens the native window with it
 ```
 
-To uninstall: `dsh plugin --profile web remove dsh-desktop-kit` and delete `~/.dsh/bin/dsh-desktop-kit`.
+The macOS arm64 release package includes the native shell and `app/` assets. On the first
+`dsh web` start it installs the binary to `~/.dsh/bin/dsh-desktop-kit` and creates
+`~/Applications/DSH.app`. A source checkout still requires `cargo build --release` and
+`app/install.sh` as described below.
+
+To uninstall: `dsh plugin --profile web remove dsh-desktop-kit`, delete
+`~/.dsh/bin/dsh-desktop-kit`, and remove `~/Applications/DSH.app` if it was installed.
 
 ### Clickable app icon (macOS)
 

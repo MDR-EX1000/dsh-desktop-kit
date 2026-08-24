@@ -9,6 +9,12 @@ versioning follows [SemVer](https://semver.org/).
   the plugin installs them on the first `dsh web` start, so dsh-market installation no
   longer requires a separate Rust build or manual `DSH.app` setup.
 
+## 0.2.1 — 2026-08-24
+
+- Fix: published tarballs no longer carry an install-time lifecycle build script;
+  dsh-market can install the prebuilt macOS shell without asking the user to approve
+  package builds.
+
 ## 0.1.5 — 2026-08-24
 
 - Fix: the macOS desktop launcher now starts `dsh web --no-open` on a cold launch,

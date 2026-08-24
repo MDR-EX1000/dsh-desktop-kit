@@ -39,8 +39,11 @@ jobs:
           cp "$shell_bin" bin/dsh-desktop-kit
           chmod 755 bin/dsh-desktop-kit
 
-      - name: Pack plugin tarball (prepack runs build + tests)
-        run: npm pack
+      - name: Validate and pack plugin tarball
+        run: |
+          pnpm build
+          pnpm test
+          npm pack
 
       - name: Add legacy tarball alias for dsh-market compatibility
         run: |

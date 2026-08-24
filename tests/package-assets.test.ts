@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 
 const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as {
   files?: string[]
+  scripts?: Record<string, string>
 }
 
 describe('desktop package assets', () => {
@@ -21,5 +22,12 @@ describe('desktop package assets', () => {
     // release checkout may contain it here before npm pack.
     const binary = new URL('../bin/dsh-desktop-kit', import.meta.url)
     if (existsSync(binary)) expect(manifest.files).toContain('bin')
+  })
+
+  it('does not require an install-time build script', () => {
+    expect(manifest.scripts?.preinstall).toBeUndefined()
+    expect(manifest.scripts?.install).toBeUndefined()
+    expect(manifest.scripts?.postinstall).toBeUndefined()
+    expect(manifest.scripts?.prepack).toBeUndefined()
   })
 })

@@ -8,7 +8,7 @@ Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/d
 
 [dsh-desktop](https://github.com/s3yf1337/dsh-desktop) is great and was the blueprint. We rebuilt a smaller one for one concrete reason: **real macOS fullscreen**. Its window is frameless with a web-drawn title bar and never wires up `setFullscreen` — the maximize button is zoom, not a native fullscreen Space. This shell uses a plain **decorated** window, so the green traffic-light button and Ctrl+Cmd+F give you true macOS fullscreen out of the box.
 
-## Features (v0.1)
+## Features (v0.2.1)
 
 - **Native window on the loopback web surface** — same origin the browser uses, so the whole SPA and every plugin work unchanged (verified with `dsh-rw`).
 - **Real macOS fullscreen** — decorated window, native fullscreen Space, no custom title bar needed.
@@ -41,7 +41,9 @@ Requires the `dsh` CLI and macOS (other platforms are untested but should work).
 ```bash
 # 1. the plugin
 dsh plugin --profile web add dsh-desktop-kit          # dsh-market
-# or from a checkout / GitHub release tarball:
+# or from the latest prebuilt GitHub Release tarball:
+dsh plugin --profile web add https://github.com/MDR-EX1000/dsh-desktop-kit/releases/latest/download/dsh-desktop-kit.tgz
+# or from a checkout / GitHub source:
 dsh plugin --profile web add /path/to/dsh-desktop-kit
 
 # 2. restart dsh web — the release package installs the shell and DSH.app,
@@ -51,7 +53,9 @@ dsh plugin --profile web add /path/to/dsh-desktop-kit
 The macOS arm64 release package includes the native shell and `app/` assets. The GitHub source
 repository also tracks the compiled plugin `lib/`, the arm64 `bin/dsh-desktop-kit`, and the app
 assets, so a dsh-market GitHub-source install does not need a local TypeScript or Rust build on
-Apple Silicon. On the first `dsh web` start it installs the binary to `~/.dsh/bin/dsh-desktop-kit`
+Apple Silicon. Release packages use the stable filename `dsh-desktop-kit.tgz` across versions, so
+the `releases/latest/download` URL remains valid after upgrades. On the first `dsh web` start it
+installs the binary to `~/.dsh/bin/dsh-desktop-kit`
 and creates `~/Applications/DSH.app`. A source checkout still requires `cargo build --release`
 only when rebuilding the native shell; `app/install.sh` remains available for rebuilding the app
 bundle.

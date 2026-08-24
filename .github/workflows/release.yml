@@ -49,6 +49,7 @@ jobs:
         run: |
           plugin_tgz="$(find . -maxdepth 1 -type f -name 'dsh-desktop-kit-*.tgz' -print -quit)"
           test -n "$plugin_tgz"
+          cp "$plugin_tgz" dsh-desktop-kit.tgz
           cp "$plugin_tgz" dsh-desktop-kit-0.1.0.tgz
 
       - uses: actions/upload-artifact@v4

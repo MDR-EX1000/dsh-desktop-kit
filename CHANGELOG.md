@@ -3,17 +3,25 @@
 All notable changes to **dsh-desktop-kit**. Format follows [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
-## 0.2.0 — 2026-08-24
+## 0.2.2 — 2026-08-25
 
-- New: macOS arm64 release packages include the native shell and clickable app assets;
-  the plugin installs them on the first `dsh web` start, so dsh-market installation no
-  longer requires a separate Rust build or manual `DSH.app` setup.
+- Fix: the clickable `DSH.app` now has a native Mach-O launcher. The launcher
+  invokes the existing shell logic as a child process, so LaunchServices no
+  longer routes the app through Terminal.app. Release packages carry the
+  prebuilt arm64 launcher; source checkouts compile it with clang when the
+  macOS Command Line Tools are available.
 
 ## 0.2.1 — 2026-08-24
 
 - Fix: published tarballs no longer carry an install-time lifecycle build script;
   dsh-market can install the prebuilt macOS shell without asking the user to approve
   package builds.
+
+## 0.2.0 — 2026-08-24
+
+- New: macOS arm64 release packages include the native shell and clickable app assets;
+  the plugin installs them on the first `dsh web` start, so dsh-market installation no
+  longer requires a separate Rust build or manual `DSH.app` setup.
 
 ## 0.1.5 — 2026-08-24
 

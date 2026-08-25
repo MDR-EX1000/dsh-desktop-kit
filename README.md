@@ -8,13 +8,13 @@ Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/d
 
 [dsh-desktop](https://github.com/s3yf1337/dsh-desktop) is great and was the blueprint. We rebuilt a smaller one for one concrete reason: **real macOS fullscreen**. Its window is frameless with a web-drawn title bar and never wires up `setFullscreen` — the maximize button is zoom, not a native fullscreen Space. This shell uses a plain **decorated** window, so the green traffic-light button and Ctrl+Cmd+F give you true macOS fullscreen out of the box.
 
-## Features (v0.2.1)
+## Features (v0.2.2)
 
 - **Native window on the loopback web surface** — same origin the browser uses, so the whole SPA and every plugin work unchanged (verified with `dsh-rw`).
 - **Real macOS fullscreen** — decorated window, native fullscreen Space, no custom title bar needed.
 - **Single instance** — a second launch focuses the existing window instead of opening another.
 - **Lifecycle contract** — closing the window exits the shell with code 0, and the plugin shuts the harness down; plugin teardown kills the shell. No orphaned processes on either side.
-- **Self-installing macOS release** — the packaged arm64 shell is copied to `~/.dsh/bin` and the clickable `DSH.app` is installed on the first `dsh web` start; no Rust build is required.
+- **Self-installing macOS release** — the packaged arm64 shell and native Mach-O launcher are copied to `~/.dsh/bin`, and the clickable `DSH.app` is installed on the first `dsh web` start; no Rust build is required. Launching the app does not open Terminal.app.
 - **Graceful degradation** — on an unsupported platform or source checkout without bundled assets, the harness keeps serving the web UI in the browser, with an actionable log line.
 - **Small** — system WebKit (WKWebView), no bundled Chromium; the shell binary is a few MB.
 - **External links that work** — `target="_blank"` / cross-origin links are delegated to the system browser via the shell's `kit_open_external` command (a bare WKWebView renders them dead otherwise).
@@ -50,22 +50,22 @@ dsh plugin --profile web add /path/to/dsh-desktop-kit
 #    then opens the native window with it
 ```
 
-The macOS arm64 release package includes the native shell and `app/` assets. The GitHub source
-repository also tracks the compiled plugin `lib/`, the arm64 `bin/dsh-desktop-kit`, and the app
-assets, so a dsh-market GitHub-source install does not need a local TypeScript or Rust build on
+The macOS arm64 release package includes the native shell, native launcher, and `app/` assets. The
+GitHub source repository also tracks the compiled plugin `lib/`, the arm64 `bin/dsh-desktop-kit` and
+`bin/dsh-launcher`, and the app assets, so a dsh-market GitHub-source install does not need a local TypeScript or Rust build on
 Apple Silicon. Release packages use the stable filename `dsh-desktop-kit.tgz` across versions, so
 the `releases/latest/download` URL remains valid after upgrades. On the first `dsh web` start it
-installs the binary to `~/.dsh/bin/dsh-desktop-kit`
+installs the native shell and launcher to `~/.dsh/bin`
 and creates `~/Applications/DSH.app`. A source checkout still requires `cargo build --release`
-only when rebuilding the native shell; `app/install.sh` remains available for rebuilding the app
-bundle.
+only when rebuilding the native shell; `app/install.sh` compiles the small native launcher with
+clang when a prebuilt `bin/dsh-launcher` is not present.
 
 ### Source-install maintenance notes
 
 If the dsh-market catalog omits the `tarball` field, dsh-market falls back to
 `github:MDR-EX1000/dsh-desktop-kit`. The installer then uses the repository's current
 default-branch commit instead of the latest formal Release; it does not rebuild this plugin during
-installation. The committed `lib/`, `bin/dsh-desktop-kit`, and `app/` files are the installable
+installation. The committed `lib/`, `bin/dsh-desktop-kit`, `bin/dsh-launcher`, and `app/` files are the installable
 runtime assets and must remain in Git.
 
 When changing the TypeScript plugin or the native shell, regenerate and commit the corresponding
@@ -75,6 +75,7 @@ artifacts before users install from GitHub:
 pnpm build                         # refreshes lib/
 cd shell && cargo build --release  # refreshes the native binary when shell code changed
 # copy target/release/dsh-desktop-kit to bin/dsh-desktop-kit
+# build/copy app/dsh-launcher.c to bin/dsh-launcher when the native launcher changes
 ```
 
 The bundled binary is currently macOS **arm64**. A GitHub-source install does not cross-compile it
@@ -88,10 +89,12 @@ To uninstall: `dsh plugin --profile web remove dsh-desktop-kit`, delete
 ### Clickable app icon (macOS)
 
 ```bash
-app/install.sh   # builds ~/Applications/DSH.app (idempotent, macOS built-ins only)
+app/install.sh   # builds ~/Applications/DSH.app (native launcher; idempotent)
 ```
 
-The bundle is a thin launcher, not a second harness: if `127.0.0.1:3080` already answers
+The bundle's `CFBundleExecutable` is a native Mach-O launcher, not a shell script. It invokes the
+resource script without attaching a TTY, so macOS does not start Terminal.app. The bundle is still
+a thin launcher, not a second harness: if `127.0.0.1:3080` already answers
 (e.g. a terminal-started `dsh web`), the icon just opens a window on that instance;
 otherwise it boots `dsh web --no-open` itself. The server still starts normally, but the
 desktop entry does not open a duplicate browser client. Starting a second `dsh web` would

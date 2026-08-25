@@ -9,7 +9,8 @@ const manifest = JSON.parse(readFileSync(new URL('../package.json', import.meta.
 describe('desktop package assets', () => {
   it('publishes the app installer assets alongside the plugin', () => {
     expect(manifest.files).toEqual(expect.arrayContaining(['app', 'shell/icons']))
-    expect(existsSync(new URL('../app/dsh-launcher', import.meta.url))).toBe(true)
+    expect(existsSync(new URL('../app/dsh-launcher.c', import.meta.url))).toBe(true)
+    expect(existsSync(new URL('../app/dsh-launcher.sh', import.meta.url))).toBe(true)
     expect(existsSync(new URL('../app/install.sh', import.meta.url))).toBe(true)
     expect(existsSync(new URL('../app/Info.plist', import.meta.url))).toBe(true)
     expect(existsSync(new URL('../shell/icons/icon.png', import.meta.url))).toBe(true)
@@ -17,11 +18,20 @@ describe('desktop package assets', () => {
 
   it('keeps the native binary optional for source/CI checkouts', () => {
     expect(manifest.files).toContain('bin')
-    // Release CI stages bin/dsh-desktop-kit from the macOS shell job before npm pack.
+    // Release CI stages both native binaries from the macOS shell job before npm pack.
     // A source checkout intentionally has no checked-in executable, while a staged
-    // release checkout may contain it here before npm pack.
-    const binary = new URL('../bin/dsh-desktop-kit', import.meta.url)
-    if (existsSync(binary)) expect(manifest.files).toContain('bin')
+    // release checkout may contain them here before npm pack.
+    const shellBinary = new URL('../bin/dsh-desktop-kit', import.meta.url)
+    const launcherBinary = new URL('../bin/dsh-launcher', import.meta.url)
+    if (existsSync(shellBinary) || existsSync(launcherBinary)) expect(manifest.files).toContain('bin')
+  })
+
+  it('requires a native launcher for the installed app', () => {
+    const installer = readFileSync(new URL('../app/install.sh', import.meta.url), 'utf8')
+    expect(installer).toContain('LAUNCHER_BIN="$REPO_DIR/bin/dsh-launcher"')
+    expect(installer).toContain('app/dsh-launcher.c')
+    expect(installer).toContain('app/dsh-launcher.sh')
+    expect(installer).toContain('no native dsh-launcher binary')
   })
 
   it('does not require an install-time build script', () => {

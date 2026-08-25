@@ -1,6 +1,7 @@
 #!/bin/bash
-# Build ~/Applications/DSH.app — a clickable wrapper around the desktop kit.
-# Idempotent: re-running overwrites the bundle in place. macOS built-ins only.
+# Build ~/Applications/DSH.app — a native launcher around the desktop kit.
+# Idempotent: re-running overwrites the bundle in place. Release packages carry
+# a prebuilt launcher; source checkouts compile the tiny launcher with clang.
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -9,8 +10,24 @@ CONTENTS="$APP_DIR/Contents"
 
 mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources"
 cp "$REPO_DIR/app/Info.plist" "$CONTENTS/Info.plist"
-cp "$REPO_DIR/app/dsh-launcher" "$CONTENTS/MacOS/dsh-launcher"
+
+# LaunchServices must see a Mach-O CFBundleExecutable. If this were a shell
+# script, macOS would hand the bundle to Terminal.app. Release tarballs stage
+# the matching arm64 binary under bin/; source checkouts build the same source
+# locally when Xcode Command Line Tools are available.
+LAUNCHER_BIN="$REPO_DIR/bin/dsh-launcher"
+if [ -x "$LAUNCHER_BIN" ]; then
+  cp "$LAUNCHER_BIN" "$CONTENTS/MacOS/dsh-launcher"
+elif [ "$(uname -s)" = "Darwin" ] && command -v clang >/dev/null 2>&1; then
+  clang -O2 -Wall -Wextra -mmacosx-version-min=13.0 \
+    "$REPO_DIR/app/dsh-launcher.c" -o "$CONTENTS/MacOS/dsh-launcher"
+else
+  echo "error: no native dsh-launcher binary; install the macOS release package or Xcode Command Line Tools" >&2
+  exit 1
+fi
 chmod +x "$CONTENTS/MacOS/dsh-launcher"
+cp "$REPO_DIR/app/dsh-launcher.sh" "$CONTENTS/Resources/dsh-launcher.sh"
+chmod +x "$CONTENTS/Resources/dsh-launcher.sh"
 
 # Release plugin packages carry the matching native shell under bin/. Keep a
 # copy inside the app bundle as well, so the clickable app remains usable even

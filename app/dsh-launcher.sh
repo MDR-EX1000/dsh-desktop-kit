@@ -1,7 +1,9 @@
 #!/bin/bash
-# DSH.app entry point. One harness per machine binds 127.0.0.1:3080, so a
-# second `dsh web` dies on EADDRINUSE — attach a window to the running
-# instance instead; boot our own only when nothing is serving.
+# DSH.app's fallback script. The app bundle uses the native dsh-launcher
+# wrapper, which invokes this script without asking macOS to open Terminal.
+# One harness per machine binds 127.0.0.1:3080, so a second `dsh web` dies on
+# EADDRINUSE — attach a window to the running instance instead; boot our own
+# only when nothing is serving.
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 URL="http://127.0.0.1:3080"
 CONTENTS="$(cd "$(dirname "$0")/.." && pwd)"

@@ -35,9 +35,13 @@ jobs:
         run: |
           mkdir -p bin
           shell_bin="$(find shell-assets -type f -name dsh-desktop-kit -print -quit)"
+          launcher_bin="$(find shell-assets -type f -name dsh-launcher -print -quit)"
           test -n "$shell_bin"
+          test -n "$launcher_bin"
           cp "$shell_bin" bin/dsh-desktop-kit
+          cp "$launcher_bin" bin/dsh-launcher
           chmod 755 bin/dsh-desktop-kit
+          chmod 755 bin/dsh-launcher
 
       - name: Validate and pack plugin tarball
         run: |
@@ -74,6 +78,9 @@ jobs:
         run: |
           tag="${GITHUB_REF_NAME}"
           mkdir -p out
+          clang -O2 -Wall -Wextra -mmacosx-version-min=13.0 \
+            app/dsh-launcher.c -o out/dsh-launcher
+          chmod 755 out/dsh-launcher
           install -m 755 shell/target/release/dsh-desktop-kit out/dsh-desktop-kit
           tar -czf "out/dsh-desktop-kit-${tag}-macos-aarch64.tar.gz" \
             -C shell/target/release dsh-desktop-kit

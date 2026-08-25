@@ -26,7 +26,7 @@ export const Config = z.object({
   /** Explicit shell binary path; empty resolves $DSH_HOME/bin → PATH → ~/.local/bin. */
   bin: z.string().default(''),
   /** Window title, passed to the shell as argv[2]. */
-  title: z.string().default('DeepSeek Harness'),
+  title: z.string().default('DSH'),
 })
 
 export interface Config {

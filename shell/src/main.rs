@@ -13,7 +13,7 @@
 use tauri::{Manager, Url};
 
 const DEFAULT_URL: &str = "http://127.0.0.1:3080";
-const DEFAULT_TITLE: &str = "DeepSeek Harness";
+const DEFAULT_TITLE: &str = "DSH";
 
 /// Open a URL with the system handler (browser/mail client). Invoked from the
 /// injected client script: WKWebView renders target="_blank" / external links

@@ -11,10 +11,10 @@ BUNDLE_BIN="$CONTENTS/Resources/dsh-desktop-kit"
 USER_BIN="$HOME/.dsh/bin/dsh-desktop-kit"
 if curl -fsS -m 2 -o /dev/null "$URL"; then
   if [ -x "$BUNDLE_BIN" ]; then
-    exec "$BUNDLE_BIN" "$URL" DeepSeek Harness
+    exec "$BUNDLE_BIN" "$URL" DSH
   fi
   if [ -x "$USER_BIN" ]; then
-    exec "$USER_BIN" "$URL" DeepSeek Harness
+    exec "$USER_BIN" "$URL" DSH
   fi
   # No shell is available; show the existing web instance rather than failing
   # silently when a user launches an incomplete app bundle.

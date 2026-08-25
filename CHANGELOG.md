@@ -3,6 +3,11 @@
 All notable changes to **dsh-desktop-kit**. Format follows [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
+## 0.2.3 — 2026-08-25
+
+- Change: use `DSH` consistently as the native app name, window title, launcher
+  title, and default plugin/shell title.
+
 ## 0.2.2 — 2026-08-25
 
 - Fix: the clickable `DSH.app` now has a native Mach-O launcher. The launcher

@@ -8,7 +8,7 @@ Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/d
 
 [dsh-desktop](https://github.com/s3yf1337/dsh-desktop) is great and was the blueprint. We rebuilt a smaller one for one concrete reason: **real macOS fullscreen**. Its window is frameless with a web-drawn title bar and never wires up `setFullscreen` — the maximize button is zoom, not a native fullscreen Space. This shell uses a plain **decorated** window, so the green traffic-light button and Ctrl+Cmd+F give you true macOS fullscreen out of the box.
 
-## Features (v0.2.2)
+## Features (v0.2.3)
 
 - **Native window on the loopback web surface** — same origin the browser uses, so the whole SPA and every plugin work unchanged (verified with `dsh-rw`).
 - **Real macOS fullscreen** — decorated window, native fullscreen Space, no custom title bar needed.
@@ -131,9 +131,9 @@ Plugin config keys (defaults shown):
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `bin` | `''` | Explicit shell binary path; empty resolves `$DSH_HOME/bin` → `PATH` → `~/.local/bin`. Also settable via `DSH_DESKTOP_KIT_BIN`. |
-| `title` | `'DeepSeek Harness'` | Window title (argv[2] to the shell). |
+| `title` | `'DSH'` | Window title (argv[2] to the shell). |
 
-Shell argv: `dsh-desktop-kit [url] [title]` — defaults `http://127.0.0.1:3080` and `DeepSeek Harness`.
+Shell argv: `dsh-desktop-kit [url] [title]` — defaults `http://127.0.0.1:3080` and `DSH`.
 `--selftest` runs a scriptable native-fullscreen enter/exit check (exit 0 on pass);
 `DSH_KIT_NO_SINGLE_INSTANCE=1` runs a side-by-side instance (selftest, dev).
 

@@ -11,7 +11,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "DeepSeek Harness",
+        "title": "DSH",
         "url": "index.html",
         "width": 1280,
         "height": 800,

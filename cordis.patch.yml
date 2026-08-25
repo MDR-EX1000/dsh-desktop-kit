@@ -13,4 +13,4 @@
         # Explicit shell binary path; unset resolves in order:
         # $DSH_HOME/bin/dsh-desktop-kit → PATH → ~/.local/bin/dsh-desktop-kit
         bin: !!js process.env.DSH_DESKTOP_KIT_BIN
-        title: DeepSeek Harness
+        title: DSH

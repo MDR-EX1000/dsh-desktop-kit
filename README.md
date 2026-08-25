@@ -60,6 +60,28 @@ and creates `~/Applications/DSH.app`. A source checkout still requires `cargo bu
 only when rebuilding the native shell; `app/install.sh` remains available for rebuilding the app
 bundle.
 
+### Source-install maintenance notes
+
+If the dsh-market catalog omits the `tarball` field, dsh-market falls back to
+`github:MDR-EX1000/dsh-desktop-kit`. The installer then uses the repository's current
+default-branch commit instead of the latest formal Release; it does not rebuild this plugin during
+installation. The committed `lib/`, `bin/dsh-desktop-kit`, and `app/` files are the installable
+runtime assets and must remain in Git.
+
+When changing the TypeScript plugin or the native shell, regenerate and commit the corresponding
+artifacts before users install from GitHub:
+
+```bash
+pnpm build                         # refreshes lib/
+cd shell && cargo build --release  # refreshes the native binary when shell code changed
+# copy target/release/dsh-desktop-kit to bin/dsh-desktop-kit
+```
+
+The bundled binary is currently macOS **arm64**. A GitHub-source install does not cross-compile it
+for Intel Macs, Linux, or Windows; unsupported platforms keep the browser fallback described above.
+Choose a Release tarball when you need the exact tested Release contents, and choose the GitHub
+source target only when following the default branch is intentional.
+
 To uninstall: `dsh plugin --profile web remove dsh-desktop-kit`, delete
 `~/.dsh/bin/dsh-desktop-kit`, and remove `~/Applications/DSH.app` if it was installed.
 

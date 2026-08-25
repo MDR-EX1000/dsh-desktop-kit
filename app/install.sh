@@ -16,7 +16,7 @@ cp "$REPO_DIR/app/Info.plist" "$CONTENTS/Info.plist"
 # the matching arm64 binary under bin/; source checkouts build the same source
 # locally when Xcode Command Line Tools are available.
 LAUNCHER_BIN="$REPO_DIR/bin/dsh-launcher"
-if [ -x "$LAUNCHER_BIN" ]; then
+if [ -f "$LAUNCHER_BIN" ]; then
   cp "$LAUNCHER_BIN" "$CONTENTS/MacOS/dsh-launcher"
 elif [ "$(uname -s)" = "Darwin" ] && command -v clang >/dev/null 2>&1; then
   clang -O2 -Wall -Wextra -mmacosx-version-min=13.0 \
@@ -33,7 +33,7 @@ chmod +x "$CONTENTS/Resources/dsh-launcher.sh"
 # copy inside the app bundle as well, so the clickable app remains usable even
 # if ~/.dsh/bin is later moved or cleaned. Source checkouts without bin/ keep
 # using the traditional ~/.dsh/bin installation path.
-if [ -x "$REPO_DIR/bin/dsh-desktop-kit" ]; then
+if [ -f "$REPO_DIR/bin/dsh-desktop-kit" ]; then
   cp "$REPO_DIR/bin/dsh-desktop-kit" "$CONTENTS/Resources/dsh-desktop-kit"
   chmod +x "$CONTENTS/Resources/dsh-desktop-kit"
 fi

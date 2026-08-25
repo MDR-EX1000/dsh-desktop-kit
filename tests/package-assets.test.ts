@@ -29,6 +29,7 @@ describe('desktop package assets', () => {
   it('requires a native launcher for the installed app', () => {
     const installer = readFileSync(new URL('../app/install.sh', import.meta.url), 'utf8')
     expect(installer).toContain('LAUNCHER_BIN="$REPO_DIR/bin/dsh-launcher"')
+    expect(installer).toContain('if [ -f "$LAUNCHER_BIN" ]')
     expect(installer).toContain('app/dsh-launcher.c')
     expect(installer).toContain('app/dsh-launcher.sh')
     expect(installer).toContain('no native dsh-launcher binary')

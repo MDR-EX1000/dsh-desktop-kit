@@ -5,6 +5,8 @@ versioning follows [SemVer](https://semver.org/).
 
 ## Unreleased
 
+- Make `github:MDR-EX1000/dsh-desktop-kit` the documented default installation
+  target so DSH Market keeps a compact GitHub basename source across updates.
 - Document that the native window preserves DSH's Host-backed global language
   preference and live locale updates. Desktop Kit owns no separate interface
   copy, so localized plugins use the same `@deepseek-ai/dsh-client-locale`

@@ -8,7 +8,7 @@ Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/d
 
 [dsh-desktop](https://github.com/s3yf1337/dsh-desktop) is great and was the blueprint. We rebuilt a smaller one for one concrete reason: **real macOS fullscreen**. Its window is frameless with a web-drawn title bar and never wires up `setFullscreen` — the maximize button is zoom, not a native fullscreen Space. This shell uses a plain **decorated** window, so the green traffic-light button and Ctrl+Cmd+F give you true macOS fullscreen out of the box.
 
-## Features (v0.2.5)
+## Features (v0.2.6)
 
 - **Authenticated native window on the loopback web surface** — the plugin uses DSH's connection service to mint a process-token URL, so the WebKit client can establish its signed browser cookie under DSH `0.1.2-rc.1`; the visible URL becomes clean after the exchange.
 - **Real macOS fullscreen** — decorated window, native fullscreen Space, no custom title bar needed.
@@ -39,7 +39,7 @@ in order: `config.bin` / `DSH_DESKTOP_KIT_BIN` → `$DSH_HOME/bin/dsh-desktop-ki
 
 ## Install
 
-Requires the `dsh` CLI and macOS (other platforms are untested). Version `0.2.5`
+Requires the `dsh` CLI and macOS (other platforms are untested). Version `0.2.6`
 supports DSH `0.1.2-rc.1` and later compatible `0.1.x` releases, including the
 new launch-token authentication flow.
 

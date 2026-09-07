@@ -28,6 +28,7 @@ describe('desktop package assets', () => {
 
   it('requires a native launcher for the installed app', () => {
     const installer = readFileSync(new URL('../app/install.sh', import.meta.url), 'utf8')
+    const host = readFileSync(new URL('../src/index.ts', import.meta.url), 'utf8')
     expect(installer).toContain('LAUNCHER_BIN="$REPO_DIR/bin/dsh-launcher"')
     expect(installer).toContain('if [ -f "$LAUNCHER_BIN" ]')
     expect(installer).toContain('app/dsh-launcher.c')
@@ -36,6 +37,10 @@ describe('desktop package assets', () => {
     expect(installer).toContain('install_executable_atomically')
     expect(installer).toContain('mv -f "$staged" "$target"')
     expect(installer).toContain('codesign --force --deep --sign - "$APP_DIR"')
+    expect(installer).toContain('printf \'%s\\n\' "$PACKAGE_VERSION" > "$CONTENTS/Resources/dsh-desktop-kit.version"')
+    expect(installer.indexOf('dsh-desktop-kit.version')).toBeLessThan(installer.indexOf('codesign --force'))
+    expect(host).toContain("execFileSync('/bin/bash', [installer, version]")
+    expect(host).not.toContain('writeFileSync(appVersionFile')
   })
 
   it('does not require an install-time build script', () => {

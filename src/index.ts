@@ -176,9 +176,7 @@ function ensureBundledDesktopInstall(dshHome: string, log: Pick<Console, 'log' |
     const installer = bundledAsset('app/install.sh')
     if (existsSync(installer)) {
       try {
-        execFileSync('/bin/bash', [installer], { stdio: 'ignore' })
-        mkdirSync(join(appDir, 'Contents', 'Resources'), { recursive: true })
-        writeFileSync(appVersionFile, `${version}\n`)
+        execFileSync('/bin/bash', [installer, version], { stdio: 'ignore' })
         log.log(`dsh desktop-kit: installed DSH.app ${version} to ${appDir}`)
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)

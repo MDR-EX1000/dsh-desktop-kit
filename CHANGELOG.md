@@ -3,6 +3,12 @@
 All notable changes to **dsh-desktop-kit**. Format follows [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
+## 0.2.6 — 2026-09-07
+
+- Write the installed package-version marker before signing `DSH.app`. Version
+  `0.2.5` sealed the assembled bundle first, then the plugin rewrote that marker
+  and invalidated the resource seal on its first real startup.
+
 ## 0.2.5 — 2026-09-07
 
 - Sign the fully assembled `DSH.app` bundle after installing its executable,

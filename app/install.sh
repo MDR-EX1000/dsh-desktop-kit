@@ -7,6 +7,7 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 APP_DIR="$HOME/Applications/DSH.app"
 CONTENTS="$APP_DIR/Contents"
+PACKAGE_VERSION="${1:-}"
 
 mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources"
 cp "$REPO_DIR/app/Info.plist" "$CONTENTS/Info.plist"
@@ -71,6 +72,13 @@ for size in 16 32 128 256 512; do
 done
 iconutil -c icns "$ICONSET" -o "$CONTENTS/Resources/icon.icns"
 rm -rf "$(dirname "$ICONSET")"
+
+# The plugin passes its package version so the marker is part of the sealed
+# resource set. Writing it after codesign would immediately invalidate the
+# completed bundle.
+if [ -n "$PACKAGE_VERSION" ]; then
+  printf '%s\n' "$PACKAGE_VERSION" > "$CONTENTS/Resources/dsh-desktop-kit.version"
+fi
 
 # Seal the completed bundle after every executable and resource has been
 # installed. The launcher binaries are already ad-hoc signed, but signing the

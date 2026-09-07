@@ -72,5 +72,11 @@ done
 iconutil -c icns "$ICONSET" -o "$CONTENTS/Resources/icon.icns"
 rm -rf "$(dirname "$ICONSET")"
 
+# Seal the completed bundle after every executable and resource has been
+# installed. The launcher binaries are already ad-hoc signed, but signing the
+# bundle as a whole binds Info.plist and Resources so `codesign --verify
+# --deep --strict` succeeds for the app users launch from Finder or the Dock.
+codesign --force --deep --sign - "$APP_DIR"
+
 touch "$APP_DIR" # nudge LaunchServices to pick up the refresh
 echo "installed: $APP_DIR"

@@ -8,7 +8,7 @@ Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/d
 
 [dsh-desktop](https://github.com/s3yf1337/dsh-desktop) is great and was the blueprint. We rebuilt a smaller one for one concrete reason: **real macOS fullscreen**. Its window is frameless with a web-drawn title bar and never wires up `setFullscreen` — the maximize button is zoom, not a native fullscreen Space. This shell uses a plain **decorated** window, so the green traffic-light button and Ctrl+Cmd+F give you true macOS fullscreen out of the box.
 
-## Features (v0.2.4)
+## Features (v0.2.5)
 
 - **Authenticated native window on the loopback web surface** — the plugin uses DSH's connection service to mint a process-token URL, so the WebKit client can establish its signed browser cookie under DSH `0.1.2-rc.1`; the visible URL becomes clean after the exchange.
 - **Real macOS fullscreen** — decorated window, native fullscreen Space, no custom title bar needed.
@@ -39,7 +39,7 @@ in order: `config.bin` / `DSH_DESKTOP_KIT_BIN` → `$DSH_HOME/bin/dsh-desktop-ki
 
 ## Install
 
-Requires the `dsh` CLI and macOS (other platforms are untested). Version `0.2.4`
+Requires the `dsh` CLI and macOS (other platforms are untested). Version `0.2.5`
 supports DSH `0.1.2-rc.1` and later compatible `0.1.x` releases, including the
 new launch-token authentication flow.
 
@@ -62,7 +62,8 @@ Apple Silicon. Release packages use the stable filename `dsh-desktop-kit.tgz` ac
 the `releases/latest/download` URL remains valid after upgrades. On the first `dsh web` start it
 installs the native shell and launcher to `~/.dsh/bin`
 and creates `~/Applications/DSH.app`. Signed executables are replaced atomically so macOS does not
-reuse stale code-signature state after a local upgrade. A source checkout still requires `cargo build --release`
+reuse stale code-signature state after a local upgrade, and the completed app bundle is ad-hoc signed
+after its resources are assembled so strict bundle verification succeeds. A source checkout still requires `cargo build --release`
 only when rebuilding the native shell; `app/install.sh` compiles the small native launcher with
 clang when a prebuilt `bin/dsh-launcher` is not present.
 

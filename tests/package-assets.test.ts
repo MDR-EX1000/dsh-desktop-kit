@@ -35,6 +35,7 @@ describe('desktop package assets', () => {
     expect(installer).toContain('no native dsh-launcher binary')
     expect(installer).toContain('install_executable_atomically')
     expect(installer).toContain('mv -f "$staged" "$target"')
+    expect(installer).toContain('codesign --force --deep --sign - "$APP_DIR"')
   })
 
   it('does not require an install-time build script', () => {

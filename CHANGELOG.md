@@ -3,6 +3,12 @@
 All notable changes to **dsh-desktop-kit**. Format follows [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
+## 0.2.5 — 2026-09-07
+
+- Sign the fully assembled `DSH.app` bundle after installing its executable,
+  `Info.plist`, icon, launcher script, and embedded shell. This makes strict
+  bundle verification succeed for the app users launch from Finder or the Dock.
+
 ## 0.2.4 — 2026-09-07
 
 - Compatibility: support DSH `0.1.2-rc.1` launch-token authentication. The plugin now

@@ -8,7 +8,7 @@
 - insert:
     - id: desktop-kit
       name: 'dsh-desktop-kit'
-      inject: [webServer]
+      inject: [webServer, connection]
       config:
         # Explicit shell binary path; unset resolves in order:
         # $DSH_HOME/bin/dsh-desktop-kit → PATH → ~/.local/bin/dsh-desktop-kit

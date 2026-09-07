@@ -3,6 +3,18 @@
 All notable changes to **dsh-desktop-kit**. Format follows [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
+## 0.2.4 — 2026-09-07
+
+- Compatibility: support DSH `0.1.2-rc.1` launch-token authentication. The plugin now
+  injects the `connection` service, authenticates the clean loopback URL, and passes the
+  resulting process-token URL to the native shell while keeping tokens out of logs.
+- Treat an HTTP 401 from the loopback root as a reachable server in `DSH.app`, preventing
+  the launcher from starting a duplicate web process that would fail with `EADDRINUSE`.
+- Install signed native executables through a new inode and atomic rename. This avoids
+  macOS retaining a stale vnode code-signature cache after an upgrade and killing the
+  locally installed shell with `SIGKILL (Code Signature Invalid)`.
+- Refresh DSH and Cordis loader peer/development ranges.
+
 ## 0.2.3 — 2026-08-25
 
 - Change: use `DSH` consistently as the native app name, window title, launcher

@@ -21,6 +21,10 @@ export interface Config {
 export interface WebServerLike {
     port: number;
 }
+/** The slice of the connection service used for browser launch authentication. */
+export interface ConnectionLike {
+    authenticatedUrl(baseUrl: string): string;
+}
 export interface LoggerLike {
     info(message: string): void;
     warn(message: string): void;
@@ -29,6 +33,7 @@ export interface LoggerLike {
 /** Subset of the plugin context used here, structurally typed for tests. */
 export interface CtxLike {
     get(name: 'webServer'): WebServerLike | undefined;
+    get(name: 'connection'): ConnectionLike | undefined;
     get(name: 'appExit'): ((code: number) => void) | undefined;
     get(name: 'loader'): {
         await(): Promise<unknown>;
@@ -58,6 +63,13 @@ export interface ApplyOverrides {
     installBundled?: boolean;
     console?: Pick<Console, 'log' | 'error'>;
 }
+/**
+ * Install a signed Mach-O through a new inode. Overwriting an executable in
+ * place can leave macOS's vnode code-signature cache attached to the old
+ * contents, causing the next launch to die with SIGKILL (Code Signature
+ * Invalid) even though `codesign --verify` accepts the file on disk.
+ */
+export declare function installExecutableAtomically(source: string, target: string): void;
 /**
  * Resolve the native shell binary to spawn, in order: explicit config/env →
  * $DSH_HOME/bin → PATH → ~/.local/bin. A path-bearing explicit value must

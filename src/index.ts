@@ -8,19 +8,20 @@
 // shut the harness down (ctx.appExit). Any other exit keeps the web surface
 // running in the browser.
 import { execFileSync, spawn } from 'node:child_process'
-import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { delimiter, join } from 'node:path'
+import { basename, delimiter, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { Context } from '@deepseek-ai/cordis'
+import type {} from '@deepseek-ai/dsh-client-connection'
 import type {} from '@deepseek-ai/dsh-host-webserver'
 import z from 'schemastery'
 
 export const name = 'dsh-desktop-kit'
 
-// webServer is INJECTED so apply() runs only after the server is bound and
-// the port is the real (possibly OS-assigned) one.
-export const inject = ['webServer']
+// webServer provides the real bound port. connection turns that clean origin
+// into a process-token URL that the shell can exchange for its signed cookie.
+export const inject = ['webServer', 'connection']
 
 export const Config = z.object({
   /** Explicit shell binary path; empty resolves $DSH_HOME/bin → PATH → ~/.local/bin. */
@@ -39,6 +40,11 @@ export interface WebServerLike {
   port: number
 }
 
+/** The slice of the connection service used for browser launch authentication. */
+export interface ConnectionLike {
+  authenticatedUrl(baseUrl: string): string
+}
+
 export interface LoggerLike {
   info(message: string): void
   warn(message: string): void
@@ -48,6 +54,7 @@ export interface LoggerLike {
 /** Subset of the plugin context used here, structurally typed for tests. */
 export interface CtxLike {
   get(name: 'webServer'): WebServerLike | undefined
+  get(name: 'connection'): ConnectionLike | undefined
   get(name: 'appExit'): ((code: number) => void) | undefined
   get(name: 'loader'): { await(): Promise<unknown> } | undefined
   get(name: string): unknown
@@ -102,6 +109,24 @@ function bundledVersion(): string {
 }
 
 /**
+ * Install a signed Mach-O through a new inode. Overwriting an executable in
+ * place can leave macOS's vnode code-signature cache attached to the old
+ * contents, causing the next launch to die with SIGKILL (Code Signature
+ * Invalid) even though `codesign --verify` accepts the file on disk.
+ */
+export function installExecutableAtomically(source: string, target: string): void {
+  const staged = join(dirname(target), `.${basename(target)}.install-${process.pid}-${Date.now()}`)
+  try {
+    copyFileSync(source, staged)
+    chmodSync(staged, 0o755)
+    renameSync(staged, target)
+  } catch (error) {
+    rmSync(staged, { force: true })
+    throw error
+  }
+}
+
+/**
  * Install the packaged macOS shell and clickable app once per package version.
  * The release tarball contains these assets; source checkouts do not, so local
  * development keeps using the existing ~/.dsh/bin/PATH resolution path.
@@ -127,8 +152,7 @@ function ensureBundledDesktopInstall(dshHome: string, log: Pick<Console, 'log' |
     }
 
     if (!existsSync(targetBin) || installedVersion !== version) {
-      copyFileSync(sourceBin, targetBin)
-      chmodSync(targetBin, 0o755)
+      installExecutableAtomically(sourceBin, targetBin)
       writeFileSync(versionFile, `${version}\n`)
       log.log(`dsh desktop-kit: installed native shell ${version} to ${targetBin}`)
     }
@@ -228,8 +252,10 @@ export function apply(ctx: Context, config: Config, overrides: ApplyOverrides = 
 
   const open = () => {
     const server = ctxLike.get('webServer')
-    if (server === undefined) return
-    const url = `http://${LOOPBACK_HOST}:${server.port}`
+    const connection = ctxLike.get('connection')
+    if (server === undefined || connection === undefined) return
+    const baseUrl = `http://${LOOPBACK_HOST}:${server.port}`
+    const authenticatedUrl = connection.authenticatedUrl(baseUrl)
     let bin: string | undefined
     try {
       const dshHome = overrides.dshHome ?? resolveDshHome()
@@ -249,22 +275,22 @@ export function apply(ctx: Context, config: Config, overrides: ApplyOverrides = 
     }
     if (bin === undefined) {
       log.error(
-        `dsh desktop-kit: no shell binary found; keeping the web surface at ${url} — ` +
+        `dsh desktop-kit: no shell binary found; keeping the web surface at ${baseUrl} — ` +
           'build the shell (shell/, cargo build --release) and install it to ~/.dsh/bin, or set DSH_DESKTOP_KIT_BIN',
       )
       ctxLike.logger.warn('desktop-kit: no shell binary found; keeping the web surface')
       return
     }
-    log.log(`dsh desktop-kit: ${url} (window: ${bin})`)
-    ctxLike.logger.info(`desktop-kit: opening ${url} with ${bin}`)
-    child = doSpawn(bin, [url, config.title], {
+    log.log(`dsh desktop-kit: ${baseUrl} (window: ${bin})`)
+    ctxLike.logger.info(`desktop-kit: opening ${baseUrl} with ${bin}`)
+    child = doSpawn(bin, [authenticatedUrl, config.title], {
       env: { ...process.env, DSH_HOME: overrides.dshHome ?? resolveDshHome() },
       // v1 has no control channel: stdin ignored, stdout/stderr inherited so
       // the shell's own log lines reach the harness terminal.
       stdio: ['ignore', 'inherit', 'inherit'],
     })
     child.on('error', (error: Error) => {
-      log.error(`dsh desktop-kit: failed to start ${bin}: ${error.message}; keeping the web surface at ${url}`)
+      log.error(`dsh desktop-kit: failed to start ${bin}: ${error.message}; keeping the web surface at ${baseUrl}`)
       ctxLike.logger.error(`desktop-kit: failed to start ${bin}: ${error.message}`)
     })
     child.on('exit', (code: number | null, signal: NodeJS.Signals | null) => {
@@ -274,7 +300,7 @@ export function apply(ctx: Context, config: Config, overrides: ApplyOverrides = 
         ctxLike.logger.info('desktop-kit: window closed; shutting the harness down')
         if (exit !== undefined) exit(0)
       } else {
-        log.error(`dsh desktop-kit: shell exited with code ${code}; keeping the web surface at ${url}`)
+        log.error(`dsh desktop-kit: shell exited with code ${code}; keeping the web surface at ${baseUrl}`)
         ctxLike.logger.warn(`desktop-kit: shell exited with code ${code}`)
       }
     })

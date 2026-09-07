@@ -21,6 +21,11 @@ describe('desktop launcher', () => {
     expect(launcher).toContain('exec "$HOME/.local/bin/dsh" web --no-open')
   })
 
+  it('treats an authenticated server\'s HTTP 401 response as reachable', () => {
+    expect(launcher).toContain('if curl -sS -m 2 -o /dev/null "$URL"; then')
+    expect(launcher).not.toContain('curl -fsS')
+  })
+
   it('prefers a bundled shell and falls back to the user install', () => {
     expect(launcher).toContain('BUNDLE_BIN="$CONTENTS/Resources/dsh-desktop-kit"')
     expect(launcher).toContain('USER_BIN="$HOME/.dsh/bin/dsh-desktop-kit"')

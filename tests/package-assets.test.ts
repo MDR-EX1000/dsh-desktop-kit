@@ -33,6 +33,8 @@ describe('desktop package assets', () => {
     expect(installer).toContain('app/dsh-launcher.c')
     expect(installer).toContain('app/dsh-launcher.sh')
     expect(installer).toContain('no native dsh-launcher binary')
+    expect(installer).toContain('install_executable_atomically')
+    expect(installer).toContain('mv -f "$staged" "$target"')
   })
 
   it('does not require an install-time build script', () => {

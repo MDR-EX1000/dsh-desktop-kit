@@ -1,11 +1,11 @@
 // dsh-desktop-kit host plugin tests. Everything runs against in-memory fakes:
 // no real binary spawn, no real ~/.dsh, no real web server.
 import { EventEmitter } from 'node:events'
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { apply, resolveShellBinary } from '../src/index.js'
+import { apply, installExecutableAtomically, resolveShellBinary } from '../src/index.js'
 import type { ApplyOverrides, CtxLike, WebServerLike } from '../src/index.js'
 
 // ---------------------------------------------------------------------------
@@ -27,18 +27,37 @@ interface FakeCtx extends CtxLike {
   effects: Array<() => void | (() => void)>
 }
 
-function makeCtx(opts: { port?: number; withExit?: boolean; settled?: boolean } = {}) {
+function makeCtx(
+  opts: {
+    port?: number
+    withExit?: boolean
+    settled?: boolean
+    withConnection?: boolean
+    authenticate?: (baseUrl: string) => string
+  } = {},
+) {
   const records = {
     logs: [] as string[],
     errors: [] as string[],
     warns: [] as string[],
     exits: [] as number[],
+    authenticatedBases: [] as string[],
   }
   const webServer: WebServerLike | undefined = opts.port === undefined ? undefined : { port: opts.port }
+  const connection =
+    opts.withConnection === false
+      ? undefined
+      : {
+          authenticatedUrl(baseUrl: string) {
+            records.authenticatedBases.push(baseUrl)
+            return opts.authenticate?.(baseUrl) ?? `${baseUrl}/?token=test-token`
+          },
+        }
   const ctx: FakeCtx = {
     effects: [],
     get(name: string): any {
       if (name === 'webServer') return webServer
+      if (name === 'connection') return connection
       if (name === 'appExit') return opts.withExit === false ? undefined : (code: number) => records.exits.push(code)
       if (name === 'loader') return opts.settled === false ? undefined : { await: () => Promise.resolve() }
       return undefined
@@ -132,19 +151,39 @@ describe('resolveShellBinary', () => {
   })
 })
 
+describe('installExecutableAtomically', () => {
+  it('replaces an existing executable with a new inode', () => {
+    const dir = tmpDir()
+    const source = join(dir, 'source-bin')
+    const target = join(dir, 'installed-bin')
+    writeFileSync(source, 'new executable')
+    writeFileSync(target, 'old executable')
+    const oldInode = statSync(target).ino
+
+    installExecutableAtomically(source, target)
+
+    const installed = statSync(target)
+    expect(readFileSync(target, 'utf8')).toBe('new executable')
+    expect(installed.mode & 0o111).not.toBe(0)
+    expect(installed.ino).not.toBe(oldInode)
+  })
+})
+
 // ---------------------------------------------------------------------------
 // apply
 
 describe('apply', () => {
-  it('spawns the shell with the loopback URL from webServer.port and the title', async () => {
-    const { ctx } = makeCtx({ port: 3080 })
+  it('authenticates the clean loopback URL and passes the result to the shell', async () => {
+    const authenticatedUrl = 'http://127.0.0.1:3080/?token=process-token'
+    const { ctx, records } = makeCtx({ port: 3080, authenticate: () => authenticatedUrl })
     const { calls, spawn } = makeSpawn()
     const binDir = tmpDir()
     const bin = join(binDir, 'dsh-desktop-kit')
     writeFileSync(bin, '')
     apply(ctx as never, { bin, title: 'DSH Test' }, { spawn, dshHome: tmpDir() })
     await flush()
-    expect(calls).toEqual([{ bin, args: ['http://127.0.0.1:3080', 'DSH Test'] }])
+    expect(records.authenticatedBases).toEqual(['http://127.0.0.1:3080'])
+    expect(calls).toEqual([{ bin, args: [authenticatedUrl, 'DSH Test'] }])
   })
 
   it('waits for the loader to settle before opening', async () => {
@@ -156,7 +195,7 @@ describe('apply', () => {
     expect(calls).toEqual([]) // not before the promise resolves
     await flush()
     expect(calls).toHaveLength(1)
-    expect(calls[0]!.args[0]).toBe('http://127.0.0.1:3999')
+    expect(calls[0]!.args[0]).toBe('http://127.0.0.1:3999/?token=test-token')
   })
 
   it('warns and keeps the web surface when no binary resolves', async () => {
@@ -194,6 +233,14 @@ describe('apply', () => {
 
   it('does nothing when webServer is absent', async () => {
     const { ctx } = makeCtx({})
+    const { calls, spawn } = makeSpawn()
+    apply(ctx as never, { bin: '', title: 'x' }, { spawn, dshHome: tmpDir() })
+    await flush()
+    expect(calls).toEqual([])
+  })
+
+  it('does nothing when connection is absent', async () => {
+    const { ctx } = makeCtx({ port: 3080, withConnection: false })
     const { calls, spawn } = makeSpawn()
     apply(ctx as never, { bin: '', title: 'x' }, { spawn, dshHome: tmpDir() })
     await flush()

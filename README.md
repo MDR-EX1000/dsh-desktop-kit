@@ -8,9 +8,9 @@ Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/d
 
 [dsh-desktop](https://github.com/s3yf1337/dsh-desktop) is great and was the blueprint. We rebuilt a smaller one for one concrete reason: **real macOS fullscreen**. Its window is frameless with a web-drawn title bar and never wires up `setFullscreen` — the maximize button is zoom, not a native fullscreen Space. This shell uses a plain **decorated** window, so the green traffic-light button and Ctrl+Cmd+F give you true macOS fullscreen out of the box.
 
-## Features (v0.2.3)
+## Features (v0.2.4)
 
-- **Native window on the loopback web surface** — same origin the browser uses, so the whole SPA and every plugin work unchanged (verified with `dsh-rw`).
+- **Authenticated native window on the loopback web surface** — the plugin uses DSH's connection service to mint a process-token URL, so the WebKit client can establish its signed browser cookie under DSH `0.1.2-rc.1`; the visible URL becomes clean after the exchange.
 - **Real macOS fullscreen** — decorated window, native fullscreen Space, no custom title bar needed.
 - **Single instance** — a second launch focuses the existing window instead of opening another.
 - **Lifecycle contract** — closing the window exits the shell with code 0, and the plugin shuts the harness down; plugin teardown kills the shell. No orphaned processes on either side.
@@ -26,17 +26,22 @@ Deliberately not in v0.1: tray, OS notifications, file panel, in-app updater, co
 
 ```
 dsh web  (your existing web profile)
-  └─ dsh-desktop-kit (this plugin, inject: [webServer])
-       └─ spawns dsh-desktop-kit <url> <title>   (the Tauri shell)
+  └─ dsh-desktop-kit (this plugin, inject: [webServer, connection])
+       └─ connection.authenticatedUrl(clean URL)
+            └─ spawns dsh-desktop-kit <authenticated-url> <title>
             └─ native WKWebView window on http://127.0.0.1:<port>
                  window closed → exit 0 → plugin shuts the harness down
 ```
 
-The plugin resolves the shell binary in order: `config.bin` / `DSH_DESKTOP_KIT_BIN` → `$DSH_HOME/bin/dsh-desktop-kit` → `PATH` → `~/.local/bin/dsh-desktop-kit`.
+The process token is used only to establish the persistent signed browser cookie. Logs keep the clean
+loopback URL so the credential is not copied into terminal output. The plugin resolves the shell binary
+in order: `config.bin` / `DSH_DESKTOP_KIT_BIN` → `$DSH_HOME/bin/dsh-desktop-kit` → `PATH` → `~/.local/bin/dsh-desktop-kit`.
 
 ## Install
 
-Requires the `dsh` CLI and macOS (other platforms are untested but should work).
+Requires the `dsh` CLI and macOS (other platforms are untested). Version `0.2.4`
+supports DSH `0.1.2-rc.1` and later compatible `0.1.x` releases, including the
+new launch-token authentication flow.
 
 ```bash
 # 1. the plugin
@@ -56,7 +61,8 @@ GitHub source repository also tracks the compiled plugin `lib/`, the arm64 `bin/
 Apple Silicon. Release packages use the stable filename `dsh-desktop-kit.tgz` across versions, so
 the `releases/latest/download` URL remains valid after upgrades. On the first `dsh web` start it
 installs the native shell and launcher to `~/.dsh/bin`
-and creates `~/Applications/DSH.app`. A source checkout still requires `cargo build --release`
+and creates `~/Applications/DSH.app`. Signed executables are replaced atomically so macOS does not
+reuse stale code-signature state after a local upgrade. A source checkout still requires `cargo build --release`
 only when rebuilding the native shell; `app/install.sh` compiles the small native launcher with
 clang when a prebuilt `bin/dsh-launcher` is not present.
 
@@ -99,7 +105,8 @@ a thin launcher, not a second harness: if `127.0.0.1:3080` already answers
 otherwise it boots `dsh web --no-open` itself. The server still starts normally, but the
 desktop entry does not open a duplicate browser client. Starting a second `dsh web` would
 die on `EADDRINUSE` — earlier hand-rolled wrappers did exactly that when an instance was
-already up, which is why the launcher lives in this repo now.
+already up, which is why the launcher lives in this repo now. An HTTP 401 response counts as
+"already running" because DSH `0.1.2` deliberately protects its unauthenticated root URL.
 
 ## Development
 
@@ -133,7 +140,7 @@ Plugin config keys (defaults shown):
 | `bin` | `''` | Explicit shell binary path; empty resolves `$DSH_HOME/bin` → `PATH` → `~/.local/bin`. Also settable via `DSH_DESKTOP_KIT_BIN`. |
 | `title` | `'DSH'` | Window title (argv[2] to the shell). |
 
-Shell argv: `dsh-desktop-kit [url] [title]` — defaults `http://127.0.0.1:3080` and `DSH`.
+Shell argv: `dsh-desktop-kit [url] [title]` — the plugin supplies an authenticated URL; standalone defaults remain `http://127.0.0.1:3080` and `DSH`.
 `--selftest` runs a scriptable native-fullscreen enter/exit check (exit 0 on pass);
 `DSH_KIT_NO_SINGLE_INSTANCE=1` runs a side-by-side instance (selftest, dev).
 
@@ -141,6 +148,9 @@ Shell argv: `dsh-desktop-kit [url] [title]` — defaults `http://127.0.0.1:3080`
 
 - macOS is the only tested platform (WKWebView). Linux/Windows builds are unverified.
 - Plugin reload while the harness stays up is not handled — restart `dsh web` after reinstalling.
+- A fresh WebKit data store cannot attach through the standalone `DSH.app` launcher to a server that
+  was started without Desktop Kit: the launcher has no access to that server process's launch token.
+  Once Desktop Kit has established the signed cookie for its WebKit data store, later attaches work.
 - No close-to-tray: closing the window shuts the harness down (by design, matching the referenced behavior).
 
 ## License

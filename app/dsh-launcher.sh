@@ -3,13 +3,15 @@
 # wrapper, which invokes this script without asking macOS to open Terminal.
 # One harness per machine binds 127.0.0.1:3080, so a second `dsh web` dies on
 # EADDRINUSE — attach a window to the running instance instead; boot our own
-# only when nothing is serving.
+# only when nothing is serving. Do not use curl's --fail flag here: DSH
+# 0.1.2's unauthenticated root intentionally returns 401, which still proves
+# that the server is listening.
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 URL="http://127.0.0.1:3080"
 CONTENTS="$(cd "$(dirname "$0")/.." && pwd)"
 BUNDLE_BIN="$CONTENTS/Resources/dsh-desktop-kit"
 USER_BIN="$HOME/.dsh/bin/dsh-desktop-kit"
-if curl -fsS -m 2 -o /dev/null "$URL"; then
+if curl -sS -m 2 -o /dev/null "$URL"; then
   if [ -x "$BUNDLE_BIN" ]; then
     exec "$BUNDLE_BIN" "$URL" DSH
   fi

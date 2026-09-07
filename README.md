@@ -19,6 +19,7 @@ Self-owned desktop shell for [DeepSeek Harness](https://github.com/deepseek-ai/d
 - **Small** — system WebKit (WKWebView), no bundled Chromium; the shell binary is a few MB.
 - **External links that work** — `target="_blank"` / cross-origin links are delegated to the system browser via the shell's `kit_open_external` command (a bare WKWebView renders them dead otherwise).
 - **Browser-style zoom** — Cmd/Ctrl + `=` / `-` / `0` zooms the page (persisted), something a bare WKWebView does not offer.
+- **Follows DSH Language** — the window renders the same DSH web application and the same Host-backed global language preference as a browser client. Changing **Settings → Language** updates DSH and localized plugins such as `dsh-rw` live inside the desktop window; Desktop Kit has no separate language setting or plugin-owned UI copy.
 
 Deliberately not in v0.1: tray, OS notifications, file panel, in-app updater, control channel. The architecture (control pipe over stdin/stdout, `dshdctl:` protocol) is documented in the blueprint and can grow later.
 
@@ -144,6 +145,15 @@ Plugin config keys (defaults shown):
 Shell argv: `dsh-desktop-kit [url] [title]` — the plugin supplies an authenticated URL; standalone defaults remain `http://127.0.0.1:3080` and `DSH`.
 `--selftest` runs a scriptable native-fullscreen enter/exit check (exit 0 on pass);
 `DSH_KIT_NO_SINGLE_INSTANCE=1` runs a side-by-side instance (selftest, dev).
+
+## Language
+
+Desktop Kit does not duplicate or translate the DSH interface. Its WKWebView loads the running DSH
+web surface, so DSH's global `locale.preference` and live locale updates are preserved exactly as
+they are in the browser. Plugin dictionaries registered through
+`@deepseek-ai/dsh-client-locale` therefore work inside `DSH.app` without Desktop Kit-specific code.
+The stable application and window name `DSH` is language-neutral; native macOS window controls
+continue to follow the operating system locale.
 
 ## Known limitations
 

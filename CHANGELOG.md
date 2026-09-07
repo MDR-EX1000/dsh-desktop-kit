@@ -3,6 +3,13 @@
 All notable changes to **dsh-desktop-kit**. Format follows [Keep a Changelog](https://keepachangelog.com/),
 versioning follows [SemVer](https://semver.org/).
 
+## Unreleased
+
+- Document that the native window preserves DSH's Host-backed global language
+  preference and live locale updates. Desktop Kit owns no separate interface
+  copy, so localized plugins use the same `@deepseek-ai/dsh-client-locale`
+  dictionaries in `DSH.app` and browser clients.
+
 ## 0.2.6 — 2026-09-07
 
 - Write the installed package-version marker before signing `DSH.app`. Version
